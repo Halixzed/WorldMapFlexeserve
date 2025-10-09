@@ -70,7 +70,7 @@ class WorldMap {
         this.svg.insert("rect", ":first-child")
             .attr("width", width)
             .attr("height", height)
-            .attr("fill", "#1a1a1a");
+            .attr("fill", "rgb(51, 51, 51)");
     }
     
     createTooltip() {
@@ -152,6 +152,8 @@ class WorldMap {
                 .text("Error loading map data. Please refresh the page.");
         }
     }
+
+
     
     async loadCountryInfo() {
         // Sample country data - in a real application, you'd load this from an API
@@ -343,7 +345,8 @@ class WorldMap {
                d.properties.name ||
                "Unknown";
     }
-    
+
+
     // Get cybersecurity data for a country (handles name variations)
     getCybersecurityData(countryName) {
         // Direct match
@@ -438,16 +441,11 @@ class WorldMap {
         
         const countryName = this.getCountryName(d);
         
-        // Remove previous selection from countries and labels
+        // Remove previous selection from countries
         this.g.selectAll(".country").classed("selected", false);
-        this.g.selectAll(".country-label-text").classed("selected", false);
         
-        // Select current country and its label
+        // Select current country
         d3.select(event.currentTarget).classed("selected", true);
-        this.g.selectAll(".country-label-text")
-            .filter(function() { return d3.select(this).attr("data-country") === countryName; })
-            .classed("selected", true)
-            .style("opacity", 1); // Force selected labels to be visible
         
         this.selectedCountry = d;
         this.showCountryInfo(countryName);
