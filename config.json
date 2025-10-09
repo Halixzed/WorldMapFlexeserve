@@ -1,0 +1,9 @@
+{
+  "dataSource": "./cybersecurity-data.json",
+  "settings": {
+    "showCountryNames": true,
+    "autoZoomOnClick": true,
+    "enableSearch": true,
+    "showComplianceInTooltip": true
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "countries": {
+    "United States": {
+      "cybersecurityStandard": "NIST Cybersecurity Framework",
+      "complianceStatus": "compliant",
+      "unitsInCountry": 45,
+      "lastAuditDate": "2024-09-15",
+      "riskLevel": "low",
+      "certifications": ["ISO 27001", "SOC 2", "NIST"],
+      "complianceScore": 95
+    },
+    "Canada": {
+      "cybersecurityStandard": "CAN/CIOSC 104-1",
+      "complianceStatus": "compliant",
+      "unitsInCountry": 12,
+      "lastAuditDate": "2024-08-20",
+      "riskLevel": "low",
+      "certifications": ["ISO 27001", "CSE ITSG-33"],
+      "complianceScore": 92
+    },
+    "United Kingdom": {
+      "cybersecurityStandard": "UK Cyber Essentials Plus",
+      "complianceStatus": "compliant",
+      "unitsInCountry": 28,
+      "lastAuditDate": "2024-10-01",
+      "riskLevel": "low",
+      "certifications": ["ISO 27001", "Cyber Essentials+"],
+      "complianceScore": 97
+    },
+    "Germany": {
+      "cybersecurityStandard": "BSI IT-Grundschutz",
+      "complianceStatus": "compliant",
+      "unitsInCountry": 34,
+      "lastAuditDate": "2024-09-10",
+      "riskLevel": "low",
+      "certifications": ["ISO 27001", "BSI C5"],
+      "complianceScore": 94
+    },
+    "France": {
+      "cybersecurityStandard": "ANSSI Framework",
+      "complianceStatus": "compliant",
+      "unitsInCountry": 22,
+      "lastAuditDate": "2024-07-30",
+      "riskLevel": "medium",
+      "certifications": ["ISO 27001"],
+      "complianceScore": 88
+    },
+    "Japan": {
+      "cybersecurityStandard": "NISC Guidelines",
+      "complianceStatus": "compliant",
+      "unitsInCountry": 18,
+      "lastAuditDate": "2024-08-05",
+      "riskLevel": "low",
+      "certifications": ["ISO 27001", "ISMS"],
+      "complianceScore": 91
+    },
+    "Australia": {
+      "cybersecurityStandard": "ASD Essential Eight",
+      "complianceStatus": "compliant",
+      "unitsInCountry": 15,
+      "lastAuditDate": "2024-09-25",
+      "riskLevel": "low",
+      "certifications": ["ISO 27001", "ASD Essential Eight"],
+      "complianceScore": 96
+    },
+    "Netherlands": {
+      "cybersecurityStandard": "BIO Framework",
+      "complianceStatus": "compliant",
+      "unitsInCountry": 8,
+      "lastAuditDate": "2024-08-15",
+      "riskLevel": "low",
+      "certifications": ["ISO 27001", "NEN 7510"],
+      "complianceScore": 93
+    },
+    "China": {
+      "cybersecurityStandard": "GB/T 22239-2019",
+      "complianceStatus": "non-compliant",
+      "unitsInCountry": 67,
+      "lastAuditDate": "2024-06-10",
+      "riskLevel": "high",
+      "certifications": ["GB/T 22080"],
+      "complianceScore": 65
+    },
+    "Russia": {
+      "cybersecurityStandard": "GOST R Standards",
+      "complianceStatus": "non-compliant",
+      "unitsInCountry": 23,
+      "lastAuditDate": "2024-05-20",
+      "riskLevel": "high",
+      "certifications": [],
+      "complianceScore": 45
+    },
+    "India": {
+      "cybersecurityStandard": "IS/ISO/IEC 27001",
+      "complianceStatus": "partial",
+      "unitsInCountry": 31,
+      "lastAuditDate": "2024-07-15",
+      "riskLevel": "medium",
+      "certifications": ["ISO 27001"],
+      "complianceScore": 78
+    },
+    "Brazil": {
+      "cybersecurityStandard": "LGPD Framework",
+      "complianceStatus": "partial",
+      "unitsInCountry": 19,
+      "lastAuditDate": "2024-06-30",
+      "riskLevel": "medium",
+      "certifications": ["ISO 27001"],
+      "complianceScore": 82
+    },
+    "South Korea": {
+      "cybersecurityStandard": "K-ISMS",
+      "complianceStatus": "compliant",
+      "unitsInCountry": 14,
+      "lastAuditDate": "2024-09-05",
+      "riskLevel": "low",
+      "certifications": ["K-ISMS", "ISO 27001"],
+      "complianceScore": 89
+    },
+    "Singapore": {
+      "cybersecurityStandard": "CSA Cybersecurity Code",
+      "complianceStatus": "compliant",
+      "unitsInCountry": 6,
+      "lastAuditDate": "2024-09-20",
+      "riskLevel": "low",
+      "certifications": ["ISO 27001", "CSA STAR"],
+      "complianceScore": 98
+    },
+    "Mexico": {
+      "cybersecurityStandard": "NMX Framework",
+      "complianceStatus": "partial",
+      "unitsInCountry": 11,
+      "lastAuditDate": "2024-07-10",
+      "riskLevel": "medium",
+      "certifications": ["ISO 27001"],
+      "complianceScore": 75
+    }
+  },
+  "complianceCategories": {
+    "compliant": {
+      "color": "#4CAF50",
+      "label": "Compliant",
+      "description": "Meets all cybersecurity requirements"
+    },
+    "partial": {
+      "color": "#FF9800", 
+      "label": "Partial Compliance",
+      "description": "Some requirements met, improvement needed"
+    },
+    "non-compliant": {
+      "color": "#F44336",
+      "label": "Non-Compliant", 
+      "description": "Does not meet cybersecurity requirements"
+    },
+    "unknown": {
+      "color": "#9E9E9E",
+      "label": "Unknown",
+      "description": "Compliance status not assessed"
+    }
+  },
+  "settings": {
+    "showCountryNames": true,
+    "autoZoomOnClick": true,
+    "enableSearch": true,
+    "showComplianceInTooltip": true
+  }
+}
