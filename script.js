@@ -46,14 +46,26 @@ class WorldMap {
         
         this.path = d3.geoPath().projection(this.projection);
         
-        // Setup zoom
+        // Camera follow cursor variables
+        this.mousePos = { x: 0, y: 0 };
+        this.cameraOffset = { x: 0, y: 0 };
+        this.followIntensity = 0.02; // How much the camera follows (0-1)
+        this.smoothness = 0.1; // How smooth the follow is (0-1)
+        this.animationId = null;
+        this.baseTransform = d3.zoomIdentity;
+        
+        // Setup zoom with panning constraints
         this.zoom = d3.zoom()
             .scaleExtent([1, 8])
             .on("zoom", (event) => {
-                this.g.attr("transform", event.transform);
+                this.baseTransform = this.constrainTransform(event.transform);
+                this.applyCameraTransform();
             });
         
         this.svg.call(this.zoom);
+        
+        // Setup camera follow system
+        this.setupCameraFollow();
         
         // Add click handler to deselect when clicking on empty area
         this.svg.on("click", (event) => {
@@ -306,8 +318,14 @@ class WorldMap {
     }
     
     drawCountries() {
+        // Filter out Antarctica
+        const filteredCountries = this.countries.features.filter(d => {
+            const countryName = this.getCountryName(d);
+            return countryName !== "Antarctica";
+        });
+        
         this.g.selectAll(".country")
-            .data(this.countries.features)
+            .data(filteredCountries)
             .enter().append("path")
             .attr("class", d => {
                 const countryName = this.getCountryName(d);
@@ -688,6 +706,122 @@ class WorldMap {
                 const countryName = this.getCountryName(d);
                 return this.getCountryColor(countryName);
             });
+    }
+    
+    // Camera follow cursor system
+    setupCameraFollow() {
+        // Track mouse movement over the entire map container
+        this.svg.on("mousemove", (event) => {
+            const rect = this.svg.node().getBoundingClientRect();
+            this.mousePos.x = event.clientX - rect.left;
+            this.mousePos.y = event.clientY - rect.top;
+        });
+        
+        // Start the camera follow animation loop
+        this.startCameraFollow();
+    }
+    
+    startCameraFollow() {
+        const animate = () => {
+            this.updateCameraPosition();
+            this.animationId = requestAnimationFrame(animate);
+        };
+        
+        this.animationId = requestAnimationFrame(animate);
+    }
+    
+    updateCameraPosition() {
+        const rect = this.svg.node().getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        // Calculate offset from center (normalized to -1 to 1)
+        const normalizedX = (this.mousePos.x - centerX) / centerX;
+        const normalizedY = (this.mousePos.y - centerY) / centerY;
+        
+        // Disable camera follow completely at base zoom level
+        let effectiveIntensity = this.followIntensity;
+        if (this.baseTransform.k <= 1.05) {
+            // No camera follow when all regions are visible
+            effectiveIntensity = 0;
+        }
+        
+        // Calculate target camera offset - INVERTED so camera moves towards cursor
+        const targetOffsetX = -normalizedX * effectiveIntensity * rect.width;
+        const targetOffsetY = -normalizedY * effectiveIntensity * rect.height;
+        
+        // Smooth interpolation towards target
+        this.cameraOffset.x += (targetOffsetX - this.cameraOffset.x) * this.smoothness;
+        this.cameraOffset.y += (targetOffsetY - this.cameraOffset.y) * this.smoothness;
+        
+        // Apply the combined transform
+        this.applyCameraTransform();
+    }
+    
+    applyCameraTransform() {
+        // Combine base zoom/pan transform with camera offset
+        let combinedTransform = this.baseTransform.translate(
+            this.cameraOffset.x / this.baseTransform.k,
+            this.cameraOffset.y / this.baseTransform.k
+        );
+        
+        // Apply additional constraints to the combined transform
+        combinedTransform = this.constrainTransform(combinedTransform);
+        
+        // Apply transform smoothly
+        this.g.attr("transform", combinedTransform);
+    }
+    
+    constrainTransform(transform) {
+        const rect = this.svg.node().getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height;
+        
+        // Calculate the map bounds at current scale
+        const mapWidth = width * transform.k;
+        const mapHeight = height * transform.k;
+        
+        let x = transform.x;
+        let y = transform.y;
+        
+        // At base zoom level (scale = 1), NO panning allowed - keep perfectly centered
+        if (transform.k <= 1.05) {
+            // Force the map to stay at the original center position
+            x = 0;
+            y = 0;
+        } else {
+            // When zoomed in, allow panning but keep some content visible
+            const minX = -(mapWidth - width * 0.2); // Keep 20% of viewport visible
+            const maxX = width * 0.2;
+            const minY = -(mapHeight - height * 0.2);
+            const maxY = height * 0.2;
+            
+            x = Math.max(minX, Math.min(maxX, x));
+            y = Math.max(minY, Math.min(maxY, y));
+        }
+        
+        return d3.zoomIdentity.translate(x, y).scale(transform.k);
+    }
+    
+    // Method to adjust camera follow settings dynamically
+    setCameraFollowSettings(intensity = 0.02, smoothness = 0.1) {
+        this.followIntensity = Math.max(0, Math.min(1, intensity));
+        this.smoothness = Math.max(0.01, Math.min(1, smoothness));
+    }
+    
+    // Method to temporarily disable camera follow
+    disableCameraFollow() {
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    }
+    
+    // Method to re-enable camera follow
+    enableCameraFollow() {
+        if (!this.animationId) {
+            this.startCameraFollow();
+        }
     }
 }
 
