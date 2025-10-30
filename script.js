@@ -460,6 +460,12 @@ class WorldMap {
             this.resetZoom();
         });
         
+        // Export button
+        const exportBtn = document.getElementById('export-map');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportMapAsPNG());
+        }
+        
         // Window resize
         window.addEventListener("resize", () => {
             this.handleResize();
@@ -735,6 +741,24 @@ class WorldMap {
         if (!this.animationId) {
             this.startCameraFollow();
         }
+    }
+
+    // Export map as PNG
+    async exportMapAsPNG() {
+        const mapContainer = document.getElementById('world-map');
+        if (!mapContainer) return;
+        // Hide overlays/tooltips for clean export
+        const overlays = document.querySelectorAll('.tooltip, .country-label');
+        overlays.forEach(el => el.style.display = 'none');
+        // Use html2canvas to capture
+        html2canvas(mapContainer, {backgroundColor: null}).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'world-map.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            // Restore overlays/tooltips
+            overlays.forEach(el => el.style.display = '');
+        });
     }
 }
 
