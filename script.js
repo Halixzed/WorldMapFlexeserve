@@ -60,6 +60,11 @@ class WorldMap {
             .on("zoom", (event) => {
                 this.baseTransform = this.constrainTransform(event.transform);
                 this.applyCameraTransform();
+                // Re-render country paths for crisp edges
+                if (this.g && this.path) {
+                    this.g.selectAll(".country")
+                        .attr("d", this.path);
+                }
             });
         
         this.svg.call(this.zoom);
@@ -131,20 +136,72 @@ class WorldMap {
         }
     }
     
+    async loadGoogleSheetData() {
+        // Replace with your Google Sheets CSV export URL
+        let baseCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR-MkxJwnlndd4CNaMnbB-UrxBWUlgqZ4DwLB-ccfG2RkvQnyyAfXyz1ULg-2kB8-fx1E-mMkpbQCTQ/pub?gid=0&single=true&output=csv';
+        // Add cache-busting parameter
+        const csvUrl = `${baseCsvUrl}&cb=${Date.now()}`;
+        const data = await d3.csv(csvUrl);
+        this.cybersecurityData = {};
+        data.forEach(row => {
+            this.cybersecurityData[row.Country] = {
+                cybersecurityStandard: row.cybersecurityStandard,
+                complianceStatus: row.complianceStatus,
+                unitsInCountry: row.unitsInCountry,
+                complianceScore: row.complianceScore,
+                certifications: row.certifications ? row.certifications.split(';') : [],
+                lastAuditDate: row.lastAuditDate
+            };
+        });
+    }
+    
+    async loadSharePointCsvData() {
+        // Replace with your SharePoint CSV file direct link
+        let baseCsvUrl = 'https://nuttallscouk.sharepoint.com/:x:/s/FlexeserveConnect/EadFIEL-xdlBm0J80SXggqsB-b0WSAz6lKJSjDLmPeiV4g?e=KdAyNN';
+        // Add cache-busting parameter (handles ? or &)
+        const csvUrl = baseCsvUrl + (baseCsvUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+        const data = await d3.csv(csvUrl);
+        this.cybersecurityData = {};
+        data.forEach(row => {
+            this.cybersecurityData[row.Country] = {
+                cybersecurityStandard: row.cybersecurityStandard,
+                complianceStatus: row.complianceStatus,
+                unitsInCountry: row.unitsInCountry,
+                complianceScore: row.complianceScore,
+                certifications: row.certifications ? row.certifications.split(';') : [],
+                lastAuditDate: row.lastAuditDate
+            };
+        });
+    }
+    
     async loadData() {
         try {
-            // Show loading message
-            const container = d3.select("#world-map");
-            container.append("div")
-                .attr("class", "loading")
-                .text("Loading world map data...");
-            
+            // Show loading overlay
+            let loadingOverlay = document.getElementById('loading-overlay');
+            if (!loadingOverlay) {
+                loadingOverlay = document.createElement('div');
+                loadingOverlay.id = 'loading-overlay';
+                loadingOverlay.style.position = 'fixed';
+                loadingOverlay.style.top = '0';
+                loadingOverlay.style.left = '0';
+                loadingOverlay.style.width = '100vw';
+                loadingOverlay.style.height = '100vh';
+                loadingOverlay.style.background = 'rgba(51,51,51,0.95)';
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.style.alignItems = 'center';
+                loadingOverlay.style.justifyContent = 'center';
+                loadingOverlay.style.zIndex = '9999';
+                loadingOverlay.innerHTML = '<div style="color:#fff;font-size:2rem;text-align:center;"><span class="loader" style="display:inline-block;width:48px;height:48px;border:6px solid #fff;border-top:6px solid #888;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px;"></span><br>Loading map data...</div>';
+                document.body.appendChild(loadingOverlay);
+                // Add keyframes for spinner
+                const style = document.createElement('style');
+                style.innerHTML = '@keyframes spin {0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}';
+                document.head.appendChild(style);
+            } else {
+                loadingOverlay.style.display = 'flex';
+            }
             // Load world map data
             const world = await d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
-            
-            // Remove loading message
-            container.select(".loading").remove();
-            
             this.countries = topojson.feature(world, world.objects.countries);
             
             // Debug: Log all country names to help with configuration
@@ -154,167 +211,24 @@ class WorldMap {
                 console.log(`"${name}"`);
             });
             
-            // Load country information
-            await this.loadCountryInfo();
-            
+            // Load country information from Google Sheets
+            await this.loadGoogleSheetData();
+            // Load country information from SharePoint CSV
+            //await this.loadSharePointCsvData();
             this.drawCountries();
+            // Fade out loading overlay
+            loadingOverlay.style.transition = 'opacity 0.7s';
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 700);
         } catch (error) {
             console.error("Error loading map data:", error);
-            d3.select("#world-map").select(".loading")
-                .text("Error loading map data. Please refresh the page.");
-        }
-    }
-
-
-    
-    async loadCountryInfo() {
-        // Sample country data - in a real application, you'd load this from an API
-        this.countryData = {
-            "United States of America": {
-                capital: "Washington, D.C.",
-                population: "331.9 million",
-                area: "9.83 million km²",
-                currency: "US Dollar (USD)",
-                languages: "English",
-                region: "North America"
-            },
-            "Canada": {
-                capital: "Ottawa",
-                population: "38.2 million",
-                area: "9.98 million km²",
-                currency: "Canadian Dollar (CAD)",
-                languages: "English, French",
-                region: "North America"
-            },
-            "Brazil": {
-                capital: "Brasília",
-                population: "215.3 million",
-                area: "8.52 million km²",
-                currency: "Brazilian Real (BRL)",
-                languages: "Portuguese",
-                region: "South America"
-            },
-            "United Kingdom": {
-                capital: "London",
-                population: "67.3 million",
-                area: "243,610 km²",
-                currency: "Pound Sterling (GBP)",
-                languages: "English",
-                region: "Europe"
-            },
-            "France": {
-                capital: "Paris",
-                population: "67.8 million",
-                area: "643,801 km²",
-                currency: "Euro (EUR)",
-                languages: "French",
-                region: "Europe"
-            },
-            "Germany": {
-                capital: "Berlin",
-                population: "83.2 million",
-                area: "357,022 km²",
-                currency: "Euro (EUR)",
-                languages: "German",
-                region: "Europe"
-            },
-            "Italy": {
-                capital: "Rome",
-                population: "59.1 million",
-                area: "301,340 km²",
-                currency: "Euro (EUR)",
-                languages: "Italian",
-                region: "Europe"
-            },
-            "Spain": {
-                capital: "Madrid",
-                population: "47.4 million",
-                area: "505,370 km²",
-                currency: "Euro (EUR)",
-                languages: "Spanish",
-                region: "Europe"
-            },
-            "Russia": {
-                capital: "Moscow",
-                population: "146.2 million",
-                area: "17.1 million km²",
-                currency: "Russian Ruble (RUB)",
-                languages: "Russian",
-                region: "Europe/Asia"
-            },
-            "China": {
-                capital: "Beijing",
-                population: "1.41 billion",
-                area: "9.6 million km²",
-                currency: "Chinese Yuan (CNY)",
-                languages: "Mandarin Chinese",
-                region: "Asia"
-            },
-            "India": {
-                capital: "New Delhi",
-                population: "1.38 billion",
-                area: "3.29 million km²",
-                currency: "Indian Rupee (INR)",
-                languages: "Hindi, English",
-                region: "Asia"
-            },
-            "Japan": {
-                capital: "Tokyo",
-                population: "125.8 million",
-                area: "377,975 km²",
-                currency: "Japanese Yen (JPY)",
-                languages: "Japanese",
-                region: "Asia"
-            },
-            "Australia": {
-                capital: "Canberra",
-                population: "25.7 million",
-                area: "7.69 million km²",
-                currency: "Australian Dollar (AUD)",
-                languages: "English",
-                region: "Oceania"
-            },
-            "South Africa": {
-                capital: "Cape Town, Pretoria, Bloemfontein",
-                population: "60.4 million",
-                area: "1.22 million km²",
-                currency: "South African Rand (ZAR)",
-                languages: "11 official languages",
-                region: "Africa"
-            },
-            "Egypt": {
-                capital: "Cairo",
-                population: "104.3 million",
-                area: "1.00 million km²",
-                currency: "Egyptian Pound (EGP)",
-                languages: "Arabic",
-                region: "Africa"
-            },
-            "Nigeria": {
-                capital: "Abuja",
-                population: "218.5 million",
-                area: "923,768 km²",
-                currency: "Nigerian Naira (NGN)",
-                languages: "English",
-                region: "Africa"
-            },
-            "Mexico": {
-                capital: "Mexico City",
-                population: "128.9 million",
-                area: "1.96 million km²",
-                currency: "Mexican Peso (MXN)",
-                languages: "Spanish",
-                region: "North America"
-            },
-            "Argentina": {
-                capital: "Buenos Aires",
-                population: "45.4 million",
-                area: "2.78 million km²",
-                currency: "Argentine Peso (ARS)",
-                languages: "Spanish",
-                region: "South America"
+            let loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.innerHTML = '<div style="color:#fff;font-size:2rem;text-align:center;">Error loading map data.<br>Please refresh the page.</div>';
             }
-        };
+        }
     }
     
     drawCountries() {
@@ -323,7 +237,6 @@ class WorldMap {
             const countryName = this.getCountryName(d);
             return countryName !== "Antarctica";
         });
-        
         this.g.selectAll(".country")
             .data(filteredCountries)
             .enter().append("path")
