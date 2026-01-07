@@ -59,10 +59,12 @@ body {
 }
 
 .country {
-    fill: #e0e0e0;
-    stroke: #404040;
-    stroke-width: 0.2;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      fill: #e0e0e0;
+      stroke: #404040;
+      stroke-width: 0.2;
+      shape-rendering: geometricPrecision; /* keep paths crisp when scaled */
+      vector-effect: non-scaling-stroke;  /* prevent stroke from blurring on zoom */
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     transform-origin: center;
     will-change: transform, filter;
@@ -392,6 +394,13 @@ body {
     align-items: flex-start;
 }
 
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
 .search-input-wrapper {
     position: relative;
     display: flex;
@@ -598,6 +607,10 @@ body {
         width: 300px;
         gap: 6px;
         flex-direction: column;
+    }
+
+    .action-buttons {
+        gap: 6px;
     }
     
     .search-input-wrapper {
